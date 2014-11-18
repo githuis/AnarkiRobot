@@ -6,6 +6,7 @@ AnarkiRobot er et C program til simulering af robotstøvsugere.
 
 ===========
 Program beskrivelse og TODO
+	
 	Bevægelsesmønstre for robotten
 	Reaktion ved hendelse n
 	
