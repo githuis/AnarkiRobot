@@ -1,8 +1,0 @@
-
-printf("fuck lars");
-
-
-function retarOMeter() {
-
-
-}
