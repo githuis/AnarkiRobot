@@ -10,14 +10,16 @@
 #include <math.h>
 
 /* Size of Room*/
-#define WIDTH 16
-#define HEIGHT 8
+#define WIDTH 30
+#define HEIGHT 17
  
 /* ASCII Objects */
 #define WALL 178
 #define SOLID 177
 #define OPEN 176
 #define ROBOT 1
+
+#define CLEANED 'X'
 
 /* Defines movement directions */
 #define UP 0
@@ -38,7 +40,10 @@ void PrintRoom(struct field room[HEIGHT][WIDTH]);
 /* Makes a robot in tile x,y */
 void SpawnRobot(int x, int y, struct field room[HEIGHT][WIDTH]);
 /* Moves the Robot one tile in a given direction */
-void MoveRobot(enum moveDirection dir, int *y, int *x, struct field room[HEIGHT][WIDTH]);
+int MoveRobot(int dir, int *y, int *x, struct field room[HEIGHT][WIDTH]);
+/* Handles the robots thinking */
+void Behaviour(int moves, int *y, int *x, struct field room[HEIGHT][WIDTH], int (*Move)
+  (int dir, int *y, int *x, struct field room[HEIGHT][WIDTH]));
  
  
 int main (void)
@@ -50,11 +55,11 @@ int main (void)
   InitRoom(room);
   SpawnRobot(x,y,room);
   PrintRoom(room);
-  MoveRobot(UP, y,x, room);
+  MoveRobot(DOWN, &y,&x, room);
   
   
  
-  printf("Done\n");
+  printf("\nDone\n");
  
    return 0;
 }
@@ -86,6 +91,8 @@ void PrintRoom(struct field room[HEIGHT][WIDTH])
     {
       if(room[j][i].isRobot)
         printf("%c",ROBOT);
+      else if (room[j][i].isCleaned)
+        printf("%c", CLEANED);
       else
       printf("%c",room[j][i].type);
     }
@@ -102,7 +109,7 @@ void SpawnRobot(int x, int y, struct field room[HEIGHT][WIDTH])
     room[y][x].isRobot = 1;
 }
 
-void MoveRobot(int dir, int *y, int *x, struct field room[HEIGHT][WIDTH])
+int MoveRobot(int dir, int *y, int *x, struct field room[HEIGHT][WIDTH])
 {
   int tempx = *x;
   int tempy = *y;
@@ -118,13 +125,25 @@ void MoveRobot(int dir, int *y, int *x, struct field room[HEIGHT][WIDTH])
     *x -= 1;
   else
   {
-    printf("ERROR MOVING ROBOT");
+    printf("Collision");
     error = 1;
   }
   
   if(!error)
   {
     room[tempy][tempx].isRobot = 0;
+        room[tempy][tempx].isCleaned = 1;
     room[*y][*x].isRobot = 1;
   }
+  return error;
+}
+
+void Behaviour(int moves, int *y, int *x, struct field room[HEIGHT][WIDTH], int (*Move)
+  (int dir, int *y, int *x, struct field room[HEIGHT][WIDTH]))
+{
+  int dir = UP;
+  int rtn = 0;
+  
+  
+    room[*y][*x].isRobot = 1;
 }
