@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <conio.h>
  
 /* Size of Room*/
 #define WIDTH 30
@@ -43,9 +44,7 @@ void SpawnRobot(int x, int y, struct field room[HEIGHT][WIDTH]);
 /* Moves the Robot one tile in a given direction */
 int MoveRobot(int dir, int (*y), int (*x), struct field room[HEIGHT][WIDTH]);
 /* Handles the robots thinking */
-void Behaviour(int moves, int (*y), int (*x), struct field room[HEIGHT][WIDTH], int (*Move)
-  (int dir, int (*y), int (*x), struct field room[HEIGHT][WIDTH]));
-int CalcNextMove(int (*dir), int (*y), int (*x), struct field room[HEIGHT][WIDTH]);
+int CalcNextMove(int (*dir), int *y, int *x, int *prev_wall, struct field room[HEIGHT][WIDTH]);
 int FindLowestCost(int *CostArray);
  
  
@@ -54,19 +53,20 @@ int main (void)
 {
   struct field room[HEIGHT][WIDTH];
  
-  int x = 1, y = 1, i=0, dir=0, test=0;
+  int x = 1, y = 1, i = 0, dir = 3, direction = 0, previous = 0;
  
   InitRoom(room);
   SpawnRobot(x,y,room);
-  PrintRoom(room);
+  
  
-  for(i=0; i < 600; i++){
-    if(i % 20 == 0)
-      getchar();
-    test = (CalcNextMove(&dir, &y, &x, room));
-    MoveRobot(test, &y,&x, room);
+  for(i=0; i < 600; i++)
+  {
+    system("cls");
     PrintRoom(room);
-    
+    direction = (CalcNextMove(&dir, &y, &x, &previous, room));
+    MoveRobot(direction, &y,&x, room);
+    if(i % 5 == 0)
+      getchar();
   }
  
  
@@ -101,8 +101,14 @@ void InitRoom(struct field room[HEIGHT][WIDTH])
     }
   }
   
-  room[5][5].type = WALL;
-  room[5][6].type = WALL;
+  room[10][1].type = SOLID;
+  room[10][2].type = SOLID;
+  room[10][3].type = SOLID;
+  room[10][4].type = SOLID;
+  room[10][5].type = SOLID;
+  room[10][6].type = SOLID;
+  
+  
   
 }
  
@@ -152,13 +158,13 @@ int MoveRobot(int dir, int (*y), int (*x), struct field room[HEIGHT][WIDTH])
     printf("Collision\n");
     error = 1;
     if(dir == UP)
-      room[(*y)-1][*x].visits += 3;
+      room[(*y)-1][*x].visits += 1;
     else if(dir == RIGHT)
-      room[*y][(*x)+1].visits += 3;
+      room[*y][(*x)+1].visits += 1;
     else if(dir == DOWN)
-      room[(*y)+1][*x].visits += 3;
+      room[(*y)+1][*x].visits += 1;
     else if(dir == LEFT)
-      room[*y][(*x)-1].visits += 3;
+      room[*y][(*x)-1].visits += 1;
   }
   
   if(!error)
@@ -173,57 +179,27 @@ int MoveRobot(int dir, int (*y), int (*x), struct field room[HEIGHT][WIDTH])
 }
  
  
-int CalcNextMove(int (*dir), int (*y), int (*x), struct field room[HEIGHT][WIDTH])
+int CalcNextMove(int (*dir), int *y, int *x, int *prev_wall, struct field room[HEIGHT][WIDTH])
 {
   int cost[4];
   /*int CostUp = 1, CostRight = 2, CostLeft = 2, CostDown = 3;*/
   int cost_fwd = 1, cost_side = 2, cost_back = 3;
-
+ 
+  
+  
+  
   cost[*dir] = cost_fwd;
   cost[(*dir+1) % 4] = cost_side;
   cost[(*dir+2) % 4] = cost_back;
   cost[(*dir+3) % 4] = cost_side;
   
-  cost[0] *= (room[(*y)-1][(*x)-0].visits * 2) * room[(*y)-1][(*x)-0].type;
-  cost[1] *= (room[(*y)-0][(*x)+1].visits * 2) * room[(*y)-0][(*x)+1].type;
-  cost[2] *= (room[(*y)+1][(*x)-0].visits * 2) * room[(*y)+1][(*x)-0].type;
-  cost[3] *= (room[(*y)-0][(*x)-1].visits * 2) * room[(*y)-0][(*x)-1].type;
- 
- /*
-  if((*dir) == UP && (  *y)-1 >= 0 && (*y)-1 <= HEIGHT){
-    
-    
-
-  }
- 
-  else if((*dir) == RIGHT && (*x)+1 >= 0 && (*x)+1 <= WIDTH){
-    if(room[(*y)][(*x)+1].type == OPEN){
-      cost[1] = room[(*y)][(*x)+1].visits*CostRight;
-    }
-    else{
-      cost[1] = room[(*y)][(*x)+1].visits*WALL;
-    }
-  }
- 
-  else if((*dir) == DOWN && (*y)-1 >= 0 && (*y)-1 <= HEIGHT){
-    if(room[(*y)-1][(*x)].type == OPEN){
-      cost[2] = room[(*y)+1][(*x)].visits*CostDown;
-    }
-    else{
-      cost[2] = room[(*y)+1][(*x)].visits*WALL;
-    }
-  }
- 
-  else if ((*dir) == LEFT && ((*x))+1 >= 0 && ((*x))+1 <= WIDTH){
-    if(room[(*y)][(*x)+1].type == OPEN){
-      cost[3] = room[(*y)][(*x)+1].visits*CostLeft;
-    }
-    else{
-      cost[3] = room[(*y)][(*x)+1].visits*WALL;
-    }
-  }
- */
- 
+  cost[0] *= room[(*y)-1][(*x)-0].visits * (room[(*y)-1][(*x)-0].type - 170);
+  cost[1] *= room[(*y)-0][(*x)+1].visits * (room[(*y)-0][(*x)+1].type - 170);
+  cost[2] *= room[(*y)+1][(*x)-0].visits * (room[(*y)+1][(*x)-0].type - 170);
+  cost[3] *= room[(*y)-0][(*x)-1].visits * (room[(*y)-0][(*x)-1].type - 170);
+  
+  
+  
   
   (*dir) = FindLowestCost(cost);
   
@@ -240,6 +216,5 @@ int FindLowestCost(int *CostArray){
       entry = i;
     }
   }
-  printf("%d,%d,%d,%d,%d\n", CostArray[0], CostArray[1], CostArray[2], CostArray[3], entry);
   return entry;
 }
