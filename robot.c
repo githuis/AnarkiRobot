@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <conio.h>
+#include <conio.h>   /* getch(); */
  
 /* Size of Room*/
 #define WIDTH 30
@@ -19,7 +19,6 @@
 #define SOLID 177
 #define OPEN 176
 #define ROBOT 1
- 
 #define CLEANED 'X'
  
 /* Defines movement directions */
@@ -27,26 +26,29 @@
 #define RIGHT 1
 #define DOWN 2
 #define LEFT 3
+
+
+#define NUMBER_OF_STEPS 514
 /* Defines the struct for our tiles */
 struct field{
     int type;
-    int isCleaned;
-    int isRobot;
+    int is_cleaned;
+    int is_robot;
     int visits;
   };
  
 /*Makes a room with height and width values*/
-void InitRoom(struct field room[HEIGHT][WIDTH]);
+void init_room(struct field room[HEIGHT][WIDTH]);
 /* Prints Room to Console */
-void PrintRoom(struct field room[HEIGHT][WIDTH]);
+void print_room(struct field room[HEIGHT][WIDTH]);
 /* Makes a robot in tile x,y */
-void SpawnRobot(int x, int y, struct field room[HEIGHT][WIDTH]);
+void spawn_robot(int x, int y, struct field room[HEIGHT][WIDTH]);
 /* Moves the Robot one tile in a given direction */
-int MoveRobot(int dir, int (*y), int (*x), struct field room[HEIGHT][WIDTH]);
+int move_robot(int dir, int (*y), int (*x), struct field room[HEIGHT][WIDTH]);
 /* Handles the robots' 'thinking' */
-int CalcNextMove(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, struct field room[HEIGHT][WIDTH]);
+int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, struct field room[HEIGHT][WIDTH]);
 /* Finds  the lowest cost in a 4-long array*/
-int FindLowestCost(int *CostArray);
+int find_lowest_cost(int *CostArray);
 /* Finds a solid */
 int return_solid(int *y, int *x, struct field room[HEIGHT][WIDTH]);
  
@@ -57,22 +59,21 @@ int main (void)
 {
   struct field room[HEIGHT][WIDTH];
  
-  int x = 1, y = 1, i = 0, dir = 3, direction = 0, previous = 0, current;
+  int x = 1, y = 1, i = 0, dir = 0, direction = 0, previous = 0, current;
  
-  InitRoom(room);
-  SpawnRobot(x,y,room);
+  init_room(room);
+  spawn_robot(x,y,room);
   
  
-  for(i=0; i < 520; i++)
+  for(i=0; i < NUMBER_OF_STEPS; i++)
   {
-    system("cls");
-    PrintRoom(room);
-    direction = (CalcNextMove(&dir, &y, &x, &previous, &current, room));
-    MoveRobot(direction, &y,&x, room);
+    print_room(room);
+    direction = calc_next_move(&dir, &y, &x, &previous, &current, room);
+    move_robot(direction, &y,&x, room);
     steps++;
     
-    if(i % 100 == 0)
-      getchar();
+    getch();
+    
   }
  
  
@@ -83,15 +84,15 @@ int main (void)
    return 0;
 }
  
-void InitRoom(struct field room[HEIGHT][WIDTH])
+void init_room(struct field room[HEIGHT][WIDTH])
 {
   int j = 0, i = 0;
   for(j = 0; j < HEIGHT; ++j) /* Height */
   {
     for(i = 0; i < WIDTH ; ++i) /* Width */
     {
-      room[j][i].isRobot = 0;
-      room[j][i].isCleaned = 0;
+      room[j][i].is_robot = 0;
+      room[j][i].is_cleaned = 0;
       
      
       if(j == 0 || j == HEIGHT-1 || i == 0 || i == WIDTH-1)
@@ -106,25 +107,9 @@ void InitRoom(struct field room[HEIGHT][WIDTH])
       }
     }
   }
-  
-  /*
-  for(i = 1; i < 6; i++)
+    
+  for(i=1;i<=8;i++)
   {
-    room[10][i].type = SOLID;
-    room[10][i].visits = 10;
-  }
-  for(i = 11; i < 16; i++)
-  {
-    room[i][9].type = SOLID;
-    room[i][0].visits = 10;
-  }
-  for(i = 25; i <
-  
-  room[8][25].type = SOLID;
-  room[8][26].type = SOLID;
-  */
-  
-  for(i=1;i<=8;i++){
     room[8][i].type = SOLID;
     room[8][i].visits = 10;
     
@@ -134,23 +119,23 @@ void InitRoom(struct field room[HEIGHT][WIDTH])
     room[i][12].type = SOLID;
     room[i][12].visits = 10;
     
-    room[i+8][24].type = SOLID;
-    room[i+8][24].visits = 10;
+    room[i+7][24].type = SOLID;
+    room[i+7][24].visits = 10;
   }
  
   
 }
  
-void PrintRoom(struct field room[HEIGHT][WIDTH])
+void print_room(struct field room[HEIGHT][WIDTH])
 {
   int j = 0, i = 0;
   for(j = 0; j < HEIGHT; ++j) /* Height */
   {
     for(i = 0; i < WIDTH; ++i) /* Width */
     {
-      if(room[j][i].isRobot)
+      if(room[j][i].is_robot)
         printf("%c",ROBOT);
-      else if (room[j][i].isCleaned)
+      else if (room[j][i].is_cleaned)
         printf("%c", CLEANED);
       else
       printf("%c",room[j][i].type);
@@ -160,15 +145,15 @@ void PrintRoom(struct field room[HEIGHT][WIDTH])
   printf("\n");
 }
  
-void SpawnRobot(int x, int y, struct field room[HEIGHT][WIDTH])
+void spawn_robot(int x, int y, struct field room[HEIGHT][WIDTH])
 {
   if(room[y][x].type == WALL || room[y][x].type == SOLID)
     printf("ERROR: Cannot Spawn robot at position as it is either solid or a wall\n");
   else
-    room[y][x].isRobot = 1;
+    room[y][x].is_robot = 1;
 }
  
-int MoveRobot(int dir, int (*y), int (*x), struct field room[HEIGHT][WIDTH])
+int move_robot(int dir, int (*y), int (*x), struct field room[HEIGHT][WIDTH])
 {
   int tempx = (*x);
   int tempy = (*y);
@@ -199,16 +184,16 @@ int MoveRobot(int dir, int (*y), int (*x), struct field room[HEIGHT][WIDTH])
   if(!error)
   {
     room[(*y)][(*x)].visits += 3;
-    room[tempy][tempx].isRobot = 0;
-    room[tempy][tempx].isCleaned = 1;
-    room[(*y)][(*x)].isRobot = 1;
+    room[tempy][tempx].is_robot = 0;
+    room[tempy][tempx].is_cleaned = 1;
+    room[(*y)][(*x)].is_robot = 1;
   }
   
   return error;
 }
  
  
-int CalcNextMove(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, struct field room[HEIGHT][WIDTH])
+int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, struct field room[HEIGHT][WIDTH])
 {
   int cost[4];
   /*int CostUp = 1, CostRight = 2, CostLeft = 2, CostDown = 3;*/
@@ -234,16 +219,17 @@ int CalcNextMove(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, stru
   }
   
   
-  (*dir) = FindLowestCost(cost);
+  (*dir) = find_lowest_cost(cost);
   
   printf("Prev:\t%d\tCur:\t%d\tSteps:\t%d\nUP:\t%d\nRIGHT:\t%d\nDOWN:\t%d\nLEFT:\t%d\n",*prev_wall, *cur_wall, steps, cost[0], cost[1], cost[2], cost[3]);
   return (*dir);
 }
  
-int FindLowestCost(int *CostArray){
+int find_lowest_cost(int *CostArray){
   int i=0, lowest=9000, entry=0;
  
-  for(i=0;i<=3; i++){
+  for(i=0;i<=3; i++)
+  {
     if(CostArray[i]<lowest){
       lowest = CostArray[i];
       entry = i;
@@ -254,9 +240,9 @@ int FindLowestCost(int *CostArray){
 
 int return_solid(int *y, int *x, struct field room[HEIGHT][WIDTH])
 {
-  if(room[(*y)-1][*x].type == SOLID      )
+  if(room[(*y)-1][*x].type == SOLID )    
     return UP;                           
-  else if (room[*y][*x+1].type == SOLID  )
+  else if (room[*y][*x+1].type == SOLID )
     return RIGHT;                        
   else if (room[(*y)+1][*x].type == SOLID)
     return DOWN;                         
