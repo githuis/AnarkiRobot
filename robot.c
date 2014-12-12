@@ -39,6 +39,8 @@ struct field{
 
 /* User dialogue for selecting algorithm */
 int set_algorithm();
+/* User dialogue for selection the robots starting position */
+void set_start_position(int *x, int *y);
 /*Makes a room with height and width values*/
 void init_room(struct field room[HEIGHT][WIDTH]);
 /* Prints Room to Console */
@@ -68,17 +70,19 @@ int main (void)
   if(algorithm == 1) 
     time_spent = 8;
   
+  set_start_position(&x,&y);
   init_room(room);
   spawn_robot(x,y,room);
   
   for(i = 0; i < NUMBER_OF_STEPS; i++)
   {
+    getchar();
     system("cls");
     print_room(room);
     direction = calc_next_move(&dir, &y, &x, &previous, &current, &time_spent, room);
     move_robot(direction, &y,&x, room);
     steps++;
-    getchar();
+    
   }
  
   return 0;
@@ -87,17 +91,51 @@ int main (void)
 int set_algorithm()
 {
   int rtn = 0;
-  printf("Please select which algorithm you wish to run\n\t0. Cost and memorybased\n\t1. Cost and timebased\n\t2. Costbased with awareness\n\t3. For random\n\n> ");
+  printf("Please select which algorithm you wish to run\n\t0. Cost and memorybased\n\t1. Cost and timebased\n\t2. Costbased with awareness\n\t3. For the random algorithm\n\n> ");
   scanf(" %d", &rtn);
   if(rtn > -1 && rtn < 4)
     return rtn;
   else
   {
-    printf("Error selecting algorithm, Quitting");
+    printf("Error selecting algorithm, Quitting\n");
     exit(0);
   }
   return 0;
 }
+
+void set_start_position(int *x, int *y)
+{
+  int sel;
+  printf("Please select a starting position\n");
+  printf("\t0. Top Left corner\n\t1. Top Right corner\n\t2. Bottom Right corner\n\t3. Bottom Left corner\n\t4. Middle of room\n");
+  scanf(" %d", &sel);
+  switch(sel)
+  {
+    case(0):
+      (*x) = 1;
+      (*y) = 1;
+      break;
+    case(1):
+      (*x) = 28;
+      (*y) = 1;
+      break;
+    case(2):
+      (*x) = 28;
+      (*y) = 15;
+      break;
+    case(3):
+      (*x) = 1;
+      (*y) = 15;
+      break;
+    case(4):
+      (*x) = 15;
+      (*y) = 8;
+      break;
+    default:
+      printf("Invalid selection, starting in position (1,1)");
+      break;
+  }
+} 
  
 void init_room(struct field room[HEIGHT][WIDTH])
 {
@@ -214,7 +252,7 @@ int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, do
   {
     temp = *dir;
     (*dir) = rand()%4;
-    while(temp == *dir)
+    while(temp == (*dir+2)%4)
       (*dir) = rand()%4;
     return (*dir);
   }
