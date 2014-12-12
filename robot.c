@@ -6,7 +6,7 @@
  
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <time.h>
  
 /* Size of Room*/
 #define WIDTH 30
@@ -59,20 +59,23 @@ int steps = 0, algorithm = 0;
 int main (void)
 {
   struct field room[HEIGHT][WIDTH];
-  int x = 1, y = 1, i = 0, dir = 0, direction = 0, previous = 0, current;
-  double time = 0;
+  int x = 1, y = 1, i = 0, dir = 3, direction = 0, previous = 0, current = 0;
+  double time_spent = 0;
+  
+  srand(time(NULL));
   
   algorithm = set_algorithm();
-  if(algorithm == 1) time = 8;
+  if(algorithm == 1) 
+    time_spent = 8;
   
   init_room(room);
   spawn_robot(x,y,room);
   
-  for(i=0; i < NUMBER_OF_STEPS; i++)
+  for(i = 0; i < NUMBER_OF_STEPS; i++)
   {
     system("cls");
     print_room(room);
-    direction = calc_next_move(&dir, &y, &x, &previous, &current, &time, room);
+    direction = calc_next_move(&dir, &y, &x, &previous, &current, &time_spent, room);
     move_robot(direction, &y,&x, room);
     steps++;
     getchar();
@@ -84,9 +87,9 @@ int main (void)
 int set_algorithm()
 {
   int rtn = 0;
-  printf("Please select which algorithm you wish to run\n\t0. Cost and memorybased\n\t1. Cost and timebased\n\t2. Costbased with awareness\n\n> ");
+  printf("Please select which algorithm you wish to run\n\t0. Cost and memorybased\n\t1. Cost and timebased\n\t2. Costbased with awareness\n\t3. For random\n\n> ");
   scanf(" %d", &rtn);
-  if(rtn > -1 && rtn < 3)
+  if(rtn > -1 && rtn < 4)
     return rtn;
   else
   {
@@ -204,8 +207,17 @@ int move_robot(int dir, int *y, int *x, struct field room[HEIGHT][WIDTH])
  
 int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, double *time, struct field room[HEIGHT][WIDTH])
 {
-  int cost[4], cost_fwd = 1, cost_side = 2, cost_back = 3, s_check = 1;
+  int cost[4], cost_fwd = 1, cost_side = 2, cost_back = 3, s_check = 1, temp = 0;
   int wall_up = 0, wall_down = 0, wall_right = 0, wall_left = 0;
+  
+  if(algorithm == 3) 
+  {
+    temp = *dir;
+    (*dir) = rand()%4;
+    while(temp == *dir)
+      (*dir) = rand()%4;
+    return (*dir);
+  }
   
   *prev_wall = *cur_wall;
   *cur_wall = 5;
@@ -270,6 +282,8 @@ int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, do
       }
     }
   }
+  
+  
   
   (*dir) = find_lowest_cost(cost);
   
