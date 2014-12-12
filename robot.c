@@ -26,7 +26,7 @@
 #define LEFT 3
 
 /* How many steps does the robot take */
-#define NUMBER_OF_STEPS 550
+#define NUMBER_OF_STEPS 700
 
 /* Defines the struct for our tiles */
 struct field{
@@ -34,7 +34,7 @@ struct field{
     int is_cleaned;
     int is_robot;
     int visits;
-    int time;
+    double time;
   };
 
 /* User dialogue for selecting algorithm */
@@ -48,7 +48,7 @@ void spawn_robot(int x, int y, struct field room[HEIGHT][WIDTH]);
 /* Moves the Robot one tile in a given direction */
 int move_robot(int dir, int *y, int *x, struct field room[HEIGHT][WIDTH]);
 /* Handles the robots' 'thinking'*/
-int calc_next_move(int *dir, int *y, int *x, int *prev_wall, int *cur_wall, int *time, struct field room[HEIGHT][WIDTH]);
+int calc_next_move(int *dir, int *y, int *x, int *prev_wall, int *cur_wall, double *time, struct field room[HEIGHT][WIDTH]);
 /* Finds  the lowest cost in a 4-long array*/
 int find_lowest_cost(int *cost_array);
 /* Finds a solid */
@@ -59,16 +59,18 @@ int steps = 0, algorithm = 0;
 int main (void)
 {
   struct field room[HEIGHT][WIDTH];
-  int x = 1, y = 1, i = 0, dir = 0, direction = 0, previous = 0, current, time = 0;
+  int x = 1, y = 1, i = 0, dir = 0, direction = 0, previous = 0, current;
+  double time = 0;
   
   algorithm = set_algorithm();
-  if(algorithm == 1) time = 800;
+  if(algorithm == 1) time = 8;
   
   init_room(room);
   spawn_robot(x,y,room);
   
   for(i=0; i < NUMBER_OF_STEPS; i++)
   {
+    system("cls");
     print_room(room);
     direction = calc_next_move(&dir, &y, &x, &previous, &current, &time, room);
     move_robot(direction, &y,&x, room);
@@ -88,7 +90,7 @@ int set_algorithm()
     return rtn;
   else
   {
-    printf("Error selecting algorithm");
+    printf("Error selecting algorithm, Quitting");
     exit(0);
   }
   return 0;
@@ -107,7 +109,7 @@ void init_room(struct field room[HEIGHT][WIDTH])
       
       if(j == 0 || j == HEIGHT-1 || i == 0 || i == WIDTH-1)
       {
-         room[j][i].visits = 10;
+         room[j][i].visits = 30;
          room[j][i].type = WALL;
       }
       else
@@ -121,20 +123,16 @@ void init_room(struct field room[HEIGHT][WIDTH])
   for(i=1;i<=8;i++)
   {
     room[8][i].type = SOLID;
-    room[8][i].visits = 10;
-    room[8][i].time = SOLID;
+    room[8][i].visits = 30;
     
     room[12][i+5].type = SOLID;
-    room[12][i+5].visits = 10;
-    room[12][i+5].time = SOLID;
+    room[12][i+5].visits = 30;
     
     room[i][12].type = SOLID;
-    room[i][12].visits = 10;
-    room[i][12].time = SOLID;
+    room[i][12].visits = 30;
     
     room[i+7][24].type = SOLID;
-    room[i+7][24].visits = 10;
-    room[i+7][24].time = SOLID;
+    room[i+7][24].visits = 30;
   }
 }
  
@@ -204,10 +202,11 @@ int move_robot(int dir, int *y, int *x, struct field room[HEIGHT][WIDTH])
   return error;
 }
  
-int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, int *time, struct field room[HEIGHT][WIDTH])
+int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, double *time, struct field room[HEIGHT][WIDTH])
 {
-  int cost[4];
-  int cost_fwd = 1, cost_side = 2, cost_back = 3;
+  int cost[4], cost_fwd = 1, cost_side = 2, cost_back = 3, s_check = 1;
+  int wall_up = 0, wall_down = 0, wall_right = 0, wall_left = 0;
+  
   *prev_wall = *cur_wall;
   *cur_wall = 5;
   
@@ -231,9 +230,46 @@ int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, in
   if(algorithm == 1)
   {
     room[*y][*x].time = (*time);
-    (*time)--;
+    (*time) -= 0.01;
   }
   
+  if(algorithm == 2)
+  {
+    cost[0] = room[(*y)-1][(*x)-0].visits * 10 + 2; 
+    cost[1] = room[(*y)-0][(*x)+1].visits * 10 + 1;
+    cost[2] = room[(*y)+1][(*x)-0].visits * 10 + 4;
+    cost[3] = room[(*y)-0][(*x)-1].visits * 10 + 3; 
+  
+    if(room[(*y)-1][(*x)-0].visits > 1 && room[(*y)-0][(*x)+1].visits > 1 && room[(*y)+1][(*x)-0].visits > 1 && room[(*y)-0][(*x)-1].visits > 1)
+    {
+      printf("Scanning for uncleaned space\n");
+      while(1)
+      {
+      
+        if(room[(*y)-s_check][(*x)-0].type == WALL || room[(*y)-s_check][(*x)-0].type == SOLID)
+          wall_up = 1;
+        if(room[(*y)-0][(*x)+s_check].type == WALL || room[(*y)-0][(*x)+s_check].type == SOLID)
+          wall_right = 1;
+        if(room[(*y)+s_check][(*x)-0].type == WALL || room[(*y)+s_check][(*x)-0].type == SOLID)
+          wall_down = 1;
+        if(room[(*y)-0][(*x)-s_check].type == WALL || room[(*y)-0][(*x)-s_check].type == SOLID)
+          wall_left = 1;
+
+        if(room[(*y)-s_check][(*x)-0].visits == 1 && wall_up == 0)
+          return (UP);
+        if(room[(*y)-0][(*x)+s_check].visits == 1 && wall_right == 0)
+          return (RIGHT);
+        if(room[(*y)+s_check][(*x)-0].visits == 1 && wall_down == 0)
+          return (DOWN);
+        if(room[(*y)-0][(*x)-s_check].visits == 1 && wall_left == 0)
+          return (LEFT);
+        
+        if(wall_up==1 && wall_down==1 && wall_right==1 && wall_left==1)
+          break;
+        s_check++;
+      }
+    }
+  }
   
   (*dir) = find_lowest_cost(cost);
   
@@ -242,7 +278,7 @@ int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, in
 }
  
 int find_lowest_cost(int *cost_array){
-  int i = 0, lowest = 900000000, entry = 0;
+  int i = 0, lowest = 90000, entry = 0;
   
   if(algorithm != 1)
     for(i = 0; i <= 3; i++)
