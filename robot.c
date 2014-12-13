@@ -82,7 +82,6 @@ int main (void)
     direction = calc_next_move(&dir, &y, &x, &previous, &current, &time_spent, room);
     move_robot(direction, &y,&x, room);
     steps++;
-    
   }
  
   return 0;
@@ -191,9 +190,8 @@ void print_room(struct field room[HEIGHT][WIDTH])
       else
       printf("%c",room[j][i].type);
     }
-      printf("\n");
+    printf("\n");
   }
-  
 }
  
 void spawn_robot(int x, int y, struct field room[HEIGHT][WIDTH])
@@ -295,7 +293,6 @@ int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, do
       printf("Scanning for uncleaned space\n");
       while(1)
       {
-      
         if(room[(*y)-s_check][(*x)-0].type == WALL || room[(*y)-s_check][(*x)-0].type == SOLID)
           wall_up = 1;
         if(room[(*y)-0][(*x)+s_check].type == WALL || room[(*y)-0][(*x)+s_check].type == SOLID)
@@ -320,8 +317,6 @@ int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, do
       }
     }
   }
-  
-  
   
   (*dir) = find_lowest_cost(cost);
   
