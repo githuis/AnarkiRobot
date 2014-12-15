@@ -33,7 +33,7 @@ struct field{
     int type;
     int is_cleaned;
     int is_robot;
-    int visits;
+    int weight;
     double time;
   };
 
@@ -149,12 +149,12 @@ void init_room(struct field room[HEIGHT][WIDTH])
       
       if(j == 0 || j == HEIGHT-1 || i == 0 || i == WIDTH-1)
       {
-         room[j][i].visits = 30;
+         room[j][i].weight = 30;
          room[j][i].type = WALL;
       }
       else
       {
-         room[j][i].visits = 1;
+         room[j][i].weight = 1;
          room[j][i].type = OPEN;
       }
     }
@@ -163,16 +163,16 @@ void init_room(struct field room[HEIGHT][WIDTH])
   for(i=1;i<=8;i++)
   {
     room[8][i].type = SOLID;
-    room[8][i].visits = 30;
+    room[8][i].weight = 30;
     
     room[12][i+5].type = SOLID;
-    room[12][i+5].visits = 30;
+    room[12][i+5].weight = 30;
     
     room[i][12].type = SOLID;
-    room[i][12].visits = 30;
+    room[i][12].weight = 30;
     
     room[i+7][24].type = SOLID;
-    room[i+7][24].visits = 30;
+    room[i+7][24].weight = 30;
   }
 }
  
@@ -201,7 +201,7 @@ void spawn_robot(int x, int y, struct field room[HEIGHT][WIDTH])
   else
   {
     room[y][x].is_robot = 1;
-    room[y][x].visits += 3;
+    room[y][x].weight += 3;
   }
 }
  
@@ -224,18 +224,18 @@ int move_robot(int dir, int *y, int *x, struct field room[HEIGHT][WIDTH])
     printf("Collision\n");
     error = 1;
     if(dir == UP)
-      room[*y-1][*x].visits += 3;
+      room[*y-1][*x].weight += 3;
     else if(dir == RIGHT)
-      room[*y][*x+1].visits += 3;
+      room[*y][*x+1].weight += 3;
     else if(dir == DOWN)
-      room[*y+1][*x].visits += 3;
+      room[*y+1][*x].weight += 3;
     else if(dir == LEFT)
-      room[*y][*x-1].visits += 3;
+      room[*y][*x-1].weight += 3;
   }
   
   if(!error)
   {
-    room[*y][*x].visits += 3;
+    room[*y][*x].weight += 3;
     room[tempy][tempx].is_robot = 0;
     room[tempy][tempx].is_cleaned = 1;
     room[*y][*x].is_robot = 1;
@@ -249,7 +249,7 @@ int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, do
   int cost[4], cost_fwd = 1, cost_side = 2, cost_back = 3, s_check = 1, temp = 0;
   int wall_up = 0, wall_down = 0, wall_right = 0, wall_left = 0;
   
-  if(algorithm == 3) 
+  if(algorithm == 3)
   {
     temp = *dir;
     (*dir) = rand()%4;
@@ -268,17 +268,15 @@ int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, do
   cost[(*dir+2) % 4] = cost_back;
   cost[(*dir+3) % 4] = cost_side;
   
-  cost[0] *= room[(*y)-1][(*x)-0].visits * (room[(*y)-1][(*x)-0].type - 170) + (room[(*y)-1][(*x)-0].time);
-  cost[1] *= room[(*y)-0][(*x)+1].visits * (room[(*y)-0][(*x)+1].type - 170) + (room[(*y)-0][(*x)+1].time);
-  cost[2] *= room[(*y)+1][(*x)-0].visits * (room[(*y)+1][(*x)-0].type - 170) + (room[(*y)+1][(*x)-0].time);
-  cost[3] *= room[(*y)-0][(*x)-1].visits * (room[(*y)-0][(*x)-1].type - 170) + (room[(*y)-0][(*x)-1].time);
+  cost[0] *= room[(*y)-1][(*x)-0].weight *(room[(*y)-1][(*x)-0].type - 170) + (room[(*y)-1][(*x)-0].time);
+  cost[1] *= room[(*y)-0][(*x)+1].weight *(room[(*y)-0][(*x)+1].type - 170) + (room[(*y)-0][(*x)+1].time);
+  cost[2] *= room[(*y)+1][(*x)-0].weight *(room[(*y)+1][(*x)-0].type - 170) + (room[(*y)+1][(*x)-0].time);
+  cost[3] *= room[(*y)-0][(*x)-1].weight *(room[(*y)-0][(*x)-1].type - 170) + (room[(*y)-0][(*x)-1].time);
   
   if(*prev_wall != 5 && *cur_wall == 5 && algorithm == 0)
-  {
     cost[*prev_wall] = cost[*prev_wall] /5;
-  }
   
-  if(algorithm == 1)
+  if(algorithm == 1) 
   {
     room[*y][*x].time = (*time);
     (*time) -= 0.01;
@@ -286,12 +284,12 @@ int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, do
   
   if(algorithm == 2)
   {
-    cost[0] = room[(*y)-1][(*x)-0].visits * 10 + 2; 
-    cost[1] = room[(*y)-0][(*x)+1].visits * 10 + 1;
-    cost[2] = room[(*y)+1][(*x)-0].visits * 10 + 4;
-    cost[3] = room[(*y)-0][(*x)-1].visits * 10 + 3; 
+    cost[0] = room[(*y)-1][(*x)-0].weight * 10 + 2; 
+    cost[1] = room[(*y)-0][(*x)+1].weight * 10 + 1;
+    cost[2] = room[(*y)+1][(*x)-0].weight * 10 + 4;
+    cost[3] = room[(*y)-0][(*x)-1].weight * 10 + 3; 
   
-    if(room[(*y)-1][(*x)-0].visits > 1 && room[(*y)-0][(*x)+1].visits > 1 && room[(*y)+1][(*x)-0].visits > 1 && room[(*y)-0][(*x)-1].visits > 1)
+    if(room[(*y)-1][(*x)-0].weight > 1 && room[(*y)-0][(*x)+1].weight > 1 && room[(*y)+1][(*x)-0].weight > 1 && room[(*y)-0][(*x)-1].weight > 1)
     {
       printf("Scanning for uncleaned space\n");
       while(1)
@@ -305,13 +303,13 @@ int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, do
         if(room[(*y)-0][(*x)-s_check].type == WALL || room[(*y)-0][(*x)-s_check].type == SOLID)
           wall_left = 1;
 
-        if(room[(*y)-s_check][(*x)-0].visits == 1 && wall_up == 0)
+        if(room[(*y)-s_check][(*x)-0].weight == 1 && wall_up == 0)
           return (UP);
-        if(room[(*y)-0][(*x)+s_check].visits == 1 && wall_right == 0)
+        if(room[(*y)-0][(*x)+s_check].weight == 1 && wall_right == 0)
           return (RIGHT);
-        if(room[(*y)+s_check][(*x)-0].visits == 1 && wall_down == 0)
+        if(room[(*y)+s_check][(*x)-0].weight == 1 && wall_down == 0)
           return (DOWN);
-        if(room[(*y)-0][(*x)-s_check].visits == 1 && wall_left == 0)
+        if(room[(*y)-0][(*x)-s_check].weight == 1 && wall_left == 0)
           return (LEFT);
         
         if(wall_up==1 && wall_down==1 && wall_right==1 && wall_left==1)
