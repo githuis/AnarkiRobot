@@ -56,7 +56,7 @@ int find_lowest_cost(int *cost_array);
 /* Finds a solid */
 int return_solid(int *y, int *x, struct field room[HEIGHT][WIDTH]);
  
-int steps = 0, algorithm = 0; 
+int steps = 0, algorithm = 0, cleaned_tiles = 0; 
 
 int main (void)
 {
@@ -235,6 +235,8 @@ int move_robot(int dir, int *y, int *x, struct field room[HEIGHT][WIDTH])
   
   if(!error)
   {
+    if(!room[*y][*x].is_cleaned)
+      cleaned_tiles++;
     room[*y][*x].weight += 3;
     room[tempy][tempx].is_robot = 0;
     room[tempy][tempx].is_cleaned = 1;
@@ -255,6 +257,8 @@ int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, do
     (*dir) = rand()%4;
     while(temp == (*dir+2)%4)
       (*dir) = rand()%4;
+      
+    printf("Steps:\t\t%d\nCleaned:\t%d\n",steps,cleaned_tiles);
     return (*dir);
   }
   
@@ -321,7 +325,7 @@ int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, do
   
   (*dir) = find_lowest_cost(cost);
   
-  printf("Prev:\t%d\tCur:\t%d\tSteps:\t%d\nUP:\t%d\nRIGHT:\t%d\nDOWN:\t%d\nLEFT:\t%d\n",*prev_wall, *cur_wall, steps, cost[0], cost[1], cost[2], cost[3]);
+  printf("Prev:\t%d\tCur:\t%d\nSteps:\t%d\tClean:\t%d\nUP:\t%d\nRIGHT:\t%d\nDOWN:\t%d\nLEFT:\t%d\n",*prev_wall, *cur_wall, steps, cleaned_tiles, cost[0], cost[1], cost[2], cost[3]);
   return (*dir);
 }
  
