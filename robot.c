@@ -251,7 +251,7 @@ int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, do
   
   if(algorithm == 3)
   {
-    temp = *dir;
+    temp = (*dir);
     (*dir) = rand()%4;
     while(temp == (*dir+2)%4)
       (*dir) = rand()%4;
