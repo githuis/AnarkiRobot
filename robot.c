@@ -199,7 +199,10 @@ void spawn_robot(int x, int y, struct field room[HEIGHT][WIDTH])
   if(room[y][x].type == WALL || room[y][x].type == SOLID)
     printf("ERROR: Cannot Spawn robot at position as it is either solid or a wall\n");
   else
+  {
     room[y][x].is_robot = 1;
+    room[y][x].visits += 3;
+  }
 }
  
 int move_robot(int dir, int *y, int *x, struct field room[HEIGHT][WIDTH])
