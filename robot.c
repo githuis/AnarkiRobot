@@ -55,13 +55,15 @@ int calc_next_move(int *dir, int *y, int *x, int *prev_wall, int *cur_wall, doub
 int find_lowest_cost(int *cost_array);
 /* Finds a solid */
 int return_solid(int *y, int *x, struct field room[HEIGHT][WIDTH]);
+/* Attempt at simulating an actual roomba robot in our model */
+int roomba_robot(int *y, int *x, int *col, int *mv_x, int *mv_y, struct field room[HEIGHT][WIDTH]);
  
 int steps = 0, algorithm = 0, cleaned_tiles = 0; 
 
 int main (void)
 {
   struct field room[HEIGHT][WIDTH];
-  int x = 1, y = 1, i = 0, dir = 3, direction = 0, previous = 0, current = 0;
+  int x = 1, y = 1, i = 0, dir = 3, direction = 0, previous = 0, current = 0, did_collide = 1, mv_x = 0, mv_y = 0;
   double time_spent = 0;
   
   srand(time(NULL));
@@ -79,8 +81,13 @@ int main (void)
     getchar();
     system("cls");
     print_room(room);
-    direction = calc_next_move(&dir, &y, &x, &previous, &current, &time_spent, room);
-    move_robot(direction, &y,&x, room);
+    if(algorithm == 4)
+      did_collide = move_robot(roomba_robot(&y, &x, &did_collide, &mv_x, &mv_y, room), &y, &x, room);
+    else
+    {
+      direction = calc_next_move(&dir, &y, &x, &previous, &current, &time_spent, room);
+      move_robot(direction, &y,&x, room);
+    }
     steps++;
   }
  
@@ -90,9 +97,9 @@ int main (void)
 int set_algorithm()
 {
   int rtn = 0;
-  printf("Please select which algorithm you wish to run\n\t0. Cost and memorybased\n\t1. Cost and timebased\n\t2. Costbased with awareness\n\t3. For the random algorithm\n\n> ");
+  printf("Please select which algorithm you wish to run\n\t0. Cost and memorybased\n\t1. Cost and timebased\n\t2. Costbased with awareness\n\t3. For the random algorithm\n\t4. For the Roomba algorithm\n\n> ");
   scanf(" %d", &rtn);
-  if(rtn > -1 && rtn < 4)
+  if(rtn > -1 && rtn < 5)
     return rtn;
   else
   {
@@ -106,7 +113,7 @@ void set_start_position(int *x, int *y)
 {
   int sel;
   printf("Please select a starting position\n");
-  printf("\t0. Top Left corner\n\t1. Top Right corner\n\t2. Bottom Right corner\n\t3. Bottom Left corner\n\t4. Middle of room\n");
+  printf("\t0. Top Left corner\n\t1. Top Right corner\n\t2. Bottom Right corner\n\t3. Bottom Left corner\n\t4. Middle of room\n\n>");
   scanf(" %d", &sel);
   switch(sel)
   {
@@ -364,4 +371,36 @@ int return_solid(int *y, int *x, struct field room[HEIGHT][WIDTH])
     return LEFT;
     
   return 5;
+}
+
+int roomba_robot(int *y, int *x, int *col, int *mv_x, int *mv_y, struct field room[HEIGHT][WIDTH])
+{
+  int i = 0;
+  
+  if(!col)
+  {
+    *mv_x = (rand() % 20) - 10;
+    *mv_y = (rand() % 20) - 10;
+    printf("\nCol\n");
+  }
+
+  for( i = 0; i < 100; i++)
+  {
+    if(i % *mv_x == 0)
+    {
+      if(*mv_x >= 0)
+        return RIGHT;
+      else
+        return LEFT;
+    }
+    if(i % *mv_y == 0)
+    {
+      if(*mv_y >= 0)
+        return UP;
+      else
+        return DOWN;
+    }
+  }
+  printf("\nERROR ROOMBA ROBOT\n");
+  return UP;
 }
