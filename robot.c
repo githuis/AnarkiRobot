@@ -50,7 +50,7 @@ void spawn_robot(int x, int y, struct field room[HEIGHT][WIDTH]);
 /* Moves the Robot one tile in a given direction */
 int move_robot(int dir, int *y, int *x, struct field room[HEIGHT][WIDTH]);
 /* Handles the robots' 'thinking'*/
-int calc_next_move(int *dir, int *y, int *x, int *prev_wall, int *cur_wall, double *time, struct field room[HEIGHT][WIDTH]);
+int calc_next_move(int *dir, int *y, int *x, int *prev_wall, int *cur_wall, double *time, int *coll, int *last_dir, struct field room[HEIGHT][WIDTH]);
 /* Finds  the lowest cost in a 4-long array*/
 int find_lowest_cost(int *cost_array);
 /* Finds a solid */
@@ -63,7 +63,7 @@ int steps = 0, algorithm = 0, cleaned_tiles = 0;
 int main (void)
 {
   struct field room[HEIGHT][WIDTH];
-  int x = 1, y = 1, i = 0, dir = 3, direction = 0, previous = 0, current = 0, did_collide = 1, mv_x = 0, mv_y = 0;
+  int x = 1, y = 1, i = 0, dir = 4, previous = 0, current = 0, did_collide = 1, last_dir = 0;
   double time_spent = 0;
   
   srand(time(NULL));
@@ -81,13 +81,8 @@ int main (void)
     getchar();
     system("cls");
     print_room(room);
-    if(algorithm == 4)
-      did_collide = move_robot(roomba_robot(&y, &x, &did_collide, &mv_x, &mv_y, room), &y, &x, room);
-    else
-    {
-      direction = calc_next_move(&dir, &y, &x, &previous, &current, &time_spent, room);
-      move_robot(direction, &y,&x, room);
-    }
+    last_dir = calc_next_move(&dir, &y, &x, &previous, &current, &time_spent, &did_collide, &last_dir, room);
+    did_collide = move_robot(last_dir, &y,&x, room);
     steps++;
   }
  
@@ -253,7 +248,7 @@ int move_robot(int dir, int *y, int *x, struct field room[HEIGHT][WIDTH])
   return error;
 }
  
-int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, double *time, struct field room[HEIGHT][WIDTH])
+int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, double *time, int *coll, int *last_dir, struct field room[HEIGHT][WIDTH])
 {
   int cost[4], cost_fwd = 1, cost_side = 2, cost_back = 3, s_check = 1, temp = 0;
   int wall_up = 0, wall_down = 0, wall_right = 0, wall_left = 0;
@@ -330,6 +325,26 @@ int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, do
     }
   }
   
+  if(algorithm == 4)
+  {
+    if(*coll == 1)
+    {
+      (*dir) += rand() % 2;
+      *dir = *dir %4;
+      (*last_dir) += rand() % 2;
+      *last_dir = *last_dir % 4; 
+    }
+    
+     printf("Cur:\t%d\nLast:\t%d\n",*dir,*last_dir);
+    
+    if(*dir == *last_dir)
+      return ((*dir) +1);
+    else
+      return (*dir);
+
+    return (*dir);
+  }
+  
   (*dir) = find_lowest_cost(cost);
   
   printf("Prev:\t%d\tCur:\t%d\nSteps:\t%d\tClean:\t%d\nUP:\t%d\nRIGHT:\t%d\nDOWN:\t%d\nLEFT:\t%d\n",*prev_wall, *cur_wall, steps, cleaned_tiles, cost[0], cost[1], cost[2], cost[3]);
@@ -377,15 +392,14 @@ int roomba_robot(int *y, int *x, int *col, int *mv_x, int *mv_y, struct field ro
 {
   int i = 0;
   
-  if(!col)
+  if(!*col)
   {
     *mv_x = (rand() % 20) - 10;
     *mv_y = (rand() % 20) - 10;
     printf("\nCol\n");
   }
 
-  for( i = 0; i < 100; i++)
-  {
+
     if(i % *mv_x == 0)
     {
       if(*mv_x >= 0)
@@ -400,7 +414,7 @@ int roomba_robot(int *y, int *x, int *col, int *mv_x, int *mv_y, struct field ro
       else
         return DOWN;
     }
-  }
+ 
   printf("\nERROR ROOMBA ROBOT\n");
   return UP;
 }
