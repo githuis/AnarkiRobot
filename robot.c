@@ -335,7 +335,7 @@ int calc_next_move(int (*dir), int *y, int *x, int *prev_wall, int *cur_wall, do
       *last_dir = *last_dir % 4; 
     }
     
-     printf("Cur:\t%d\nLast:\t%d\n",*dir,*last_dir);
+    printf("Steps:\t\t%d\nCleaned:\t%d\n",steps,cleaned_tiles);
     
     if(*dir == *last_dir)
       return ((*dir) +1);
