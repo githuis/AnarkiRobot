@@ -55,8 +55,6 @@ int calc_next_move(int *dir, int *y, int *x, int *prev_wall, int *cur_wall, doub
 int find_lowest_cost(int *cost_array);
 /* Finds a solid */
 int return_solid(int *y, int *x, struct field room[HEIGHT][WIDTH]);
-/* Attempt at simulating an actual roomba robot in our model */
-int roomba_robot(int *y, int *x, int *col, int *mv_x, int *mv_y, struct field room[HEIGHT][WIDTH]);
  
 int steps = 0, algorithm = 0, cleaned_tiles = 0; 
 
@@ -386,35 +384,4 @@ int return_solid(int *y, int *x, struct field room[HEIGHT][WIDTH])
     return LEFT;
     
   return 5;
-}
-
-int roomba_robot(int *y, int *x, int *col, int *mv_x, int *mv_y, struct field room[HEIGHT][WIDTH])
-{
-  int i = 0;
-  
-  if(!*col)
-  {
-    *mv_x = (rand() % 20) - 10;
-    *mv_y = (rand() % 20) - 10;
-    printf("\nCol\n");
-  }
-
-
-    if(i % *mv_x == 0)
-    {
-      if(*mv_x >= 0)
-        return RIGHT;
-      else
-        return LEFT;
-    }
-    if(i % *mv_y == 0)
-    {
-      if(*mv_y >= 0)
-        return UP;
-      else
-        return DOWN;
-    }
- 
-  printf("\nERROR ROOMBA ROBOT\n");
-  return UP;
 }
